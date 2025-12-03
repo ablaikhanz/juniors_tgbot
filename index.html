@@ -418,6 +418,7 @@
     mainPage.style.display = 'none';
     registrationModal.classList.add('show');
     firstName.focus();
+    Document.getElementById('firstName').value = tg ? tg.initDataUnsafe.user.first_name || '' : '';
 
     if (tg) {
       tg.MainButton.hide();
