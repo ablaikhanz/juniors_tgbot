@@ -417,10 +417,12 @@
   mainRegisterBtn.addEventListener('click', () => {
     mainPage.style.display = 'none';
     registrationModal.classList.add('show');
+    // Подставляем имя пользователя из Telegram (если доступно) и фокусируем поле
+    const nameFromTg = tg?.initDataUnsafe?.user?.first_name || '';
+    document.getElementById('firstName').value = nameFromTg;
     firstName.focus();
-    Document.getElementById('firstName').value = tg ? tg.initDataUnsafe.user.first_name || '' : '';
 
-    if (tg) {
+    if (tg && tg.MainButton) {
       tg.MainButton.hide();
     }
   });
