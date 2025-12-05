@@ -357,6 +357,55 @@
   const email = document.getElementById('email');
   const phone = document.getElementById('phone');
 
+  // Получить данные пользователя из Telegram (безопасно и с fallback)
+  function getTgUserData() {
+    if (!tg) return null;
+
+    try {
+      // Новый удобный объект (initDataUnsafe)
+      const unsafe = tg.initDataUnsafe;
+      if (unsafe && unsafe.user) {
+        return unsafe.user;
+      }
+
+      // Старый формат: строка initData, в ней могут быть параметры, включая user
+      if (tg.initData) {
+        const params = new URLSearchParams(tg.initData);
+        const userStr = params.get('user');
+        if (userStr) {
+          try {
+            return JSON.parse(userStr);
+          } catch (e) {
+            // иногда user может быть закодирован иначе — покажем в консоль для отладки
+            console.warn('Не удалось распарсить user из initData:', e, userStr);
+          }
+        }
+      }
+
+      // Некоторые версии WebApp могут отдавать поля прямо в initDataUnsafe или другом поле
+      return null;
+    } catch (e) {
+      console.error('Ошибка при получении данных Telegram:', e);
+      return null;
+    }
+  }
+
+  // Установить значения в поля формы если есть данные
+  function prefillFields(user) {
+    if (!user) return;
+
+    // first_name / last_name
+    const f = user.first_name || user.firstName || user.first || '';
+    const l = user.last_name || user.lastName || user.last || '';
+
+    if (f) firstName.value = f;
+    if (l) lastName.value = l;
+
+    // Телефон — не всегда доступен. Проверяем несколько ключей
+    const ph = user.phone_number || user.phone || user.phoneNumber || '';
+    if (ph) phone.value = ph;
+  }
+
   // Валидация
   function isValidEmail(e) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -417,9 +466,16 @@
   mainRegisterBtn.addEventListener('click', () => {
     mainPage.style.display = 'none';
     registrationModal.classList.add('show');
-    // Подставляем имя пользователя из Telegram (если доступно) и фокусируем поле
-    const nameFromTg = tg?.initDataUnsafe?.user?.first_name || '';
-    document.getElementById('firstName').value = nameFromTg;
+
+    // Получаем данные пользователя из Telegram и префиллим поля
+    const userData = getTgUserData();
+    if (userData) {
+      prefillFields(userData);
+      if (userData.username) console.log('Username from TG:', userData.username);
+    } else {
+      console.log('Telegram user data not available at modal open.');
+    }
+
     firstName.focus();
 
     if (tg && tg.MainButton) {
@@ -437,7 +493,7 @@
     email.value = '';
     phone.value = '';
 
-    if (tg) {
+    if (tg && tg.MainButton) {
       tg.MainButton.hide();
     }
   });
@@ -450,18 +506,29 @@
 
     if (tg) {
       tg.sendData(JSON.stringify(payload));
-      try { tg.close(); } catch(e) {}
+      try { tg.close(); } catch(e) { console.warn(e); }
     } else {
       alert("Данные:\n" + JSON.stringify(payload, null, 2));
     }
   });
 
-  // Инициализация Telegram
+  // Инициализация Telegram + префилл при загрузке (если данные доступны сразу)
   if (tg) {
-    try { tg.expand(); } catch (e) {}
+    try { tg.expand(); } catch (e) { console.warn(e); }
+    if (tg.ready) tg.ready();
+
+    // Попробуем префиллить сразу при инициализации
+    const earlyUser = getTgUserData();
+    if (earlyUser) {
+      prefillFields(earlyUser);
+      console.log('Prefilled fields from Telegram on load:', earlyUser);
+    } else {
+      console.log('No Telegram user data on load');
+    }
   }
 
-  firstName.focus();
+  // Фокус на поле имени
+  try { firstName.focus(); } catch (e) {}
 </script>
 </body>
 </html>
