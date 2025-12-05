@@ -117,8 +117,10 @@
   #registrationModal {
     display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0,0,0,0.5);
     z-index: 1000;
     flex-direction: column;
@@ -139,8 +141,12 @@
   }
 
   @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   .modal-header {
@@ -260,32 +266,32 @@
 
   <div class="courses-grid">
     <div class="course-card">
-      <div class="course-icon">Laptop</div>
+      <div class="course-icon">💻</div>
       <h3 class="course-name">Web Development</h3>
       <p class="course-desc">Frontend & Backend</p>
     </div>
     <div class="course-card">
-      <div class="course-icon">Mobile Phone</div>
+      <div class="course-icon">📱</div>
       <h3 class="course-name">Mobile Apps</h3>
       <p class="course-desc">iOS & Android</p>
     </div>
     <div class="course-card">
-      <div class="course-icon">Robot</div>
+      <div class="course-icon">🤖</div>
       <h3 class="course-name">AI & ML</h3>
       <p class="course-desc">Machine Learning</p>
     </div>
     <div class="course-card">
-      <div class="course-icon">Gamepad</div>
+      <div class="course-icon">🎮</div>
       <h3 class="course-name">Game Dev</h3>
       <p class="course-desc">Unity & Unreal</p>
     </div>
     <div class="course-card">
-      <div class="course-icon">Cloud</div>
+      <div class="course-icon">☁️</div>
       <h3 class="course-name">Cloud & DevOps</h3>
       <p class="course-desc">AWS, Docker</p>
     </div>
     <div class="course-card">
-      <div class="course-icon">Lock</div>
+      <div class="course-icon">🔒</div>
       <h3 class="course-name">Cybersecurity</h3>
       <p class="course-desc">Безопасность</p>
     </div>
@@ -301,31 +307,31 @@
   <div class="modal-content">
     <div class="modal-header">
       <h2 class="modal-title">Регистрация</h2>
-      <button class="modal-close" id="closeModalBtn">X</button>
+      <button class="modal-close" id="closeModalBtn">✕</button>
     </div>
 
     <form id="registrationForm" onsubmit="return false;">
       <div class="form-group">
         <label for="firstName">Имя *</label>
-        <input id="firstName" class="input" type="text" placeholder="Ваше имя" required>
+        <input id="firstName" class="input" type="text" name="firstName" placeholder="Ваше имя" required>
         <div class="error-msg" id="errorFirstName"></div>
       </div>
 
       <div class="form-group">
         <label for="lastName">Фамилия *</label>
-        <input id="lastName" class="input" type="text" placeholder="Ваша фамилия" required>
+        <input id="lastName" class="input" type="text" name="lastName" placeholder="Ваша фамилия" required>
         <div class="error-msg" id="errorLastName"></div>
       </div>
 
       <div class="form-group">
-        <label for="email">E-mail *</label>
-        <input id="email" class="input" type="email" placeholder="example@mail.com" required>
+        <label for="email">E‑mail *</label>
+        <input id="email" class="input" type="email" name="email" placeholder="example@mail.com" required>
         <div class="error-msg" id="errorEmail"></div>
       </div>
 
       <div class="form-group">
         <label for="phone">Телефон *</label>
-        <input id="phone" class="input" type="tel" placeholder="+7 (777) 123-45-67" inputmode="tel" required>
+        <input id="phone" class="input" type="tel" name="phone" placeholder="+7 (777) 123-45-67" inputmode="tel" required>
         <div class="hint">Формат: +7 (ХХХ) ХХХ-ХХ-ХХ</div>
         <div class="error-msg" id="errorPhone"></div>
       </div>
@@ -337,7 +343,7 @@
 </div>
 
 <script>
-  const tg = window.Telegram?.WebApp || null;
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
   // DOM элементы
   const mainPage = document.getElementById('mainPage');
@@ -357,30 +363,45 @@
   }
 
   function isValidPhone(p) {
-    const digits = p.replace(/\D/g, '');
-    return digits.length >= 10 && digits.length <= 15;
+    return /\+?\d{7,15}/.test(p.replace(/\s|[-()]/g, ""));
   }
 
   function clearErrors() {
-    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
-  }
-
-  function showError(id, text) {
-    const el = document.getElementById(id);
-    el.textContent = text;
-    el.classList.add('show');
+    document.getElementById('errorFirstName').classList.remove('show');
+    document.getElementById('errorLastName').classList.remove('show');
+    document.getElementById('errorEmail').classList.remove('show');
+    document.getElementById('errorPhone').classList.remove('show');
   }
 
   function validate() {
     clearErrors();
-    let valid = true;
+    let isValid = true;
 
-    if (!firstName.value.trim()) { showError('errorFirstName', 'Укажите имя'); valid = false; }
-    if (!lastName.value.trim()) { showError('errorLastName', 'Укажите фамилию'); valid = false; }
-    if (!isValidEmail(email.value.trim())) { showError('errorEmail', 'Некорректный e-mail'); valid = false; }
-    if (!isValidPhone(phone.value)) { showError('errorPhone', 'Некорректный телефон'); valid = false; }
+    if (!firstName.value.trim()) {
+      document.getElementById('errorFirstName').textContent = "Укажите имя";
+      document.getElementById('errorFirstName').classList.add('show');
+      isValid = false;
+    }
 
-    return valid;
+    if (!lastName.value.trim()) {
+      document.getElementById('errorLastName').textContent = "Укажите фамилию";
+      document.getElementById('errorLastName').classList.add('show');
+      isValid = false;
+    }
+
+    if (!isValidEmail(email.value.trim())) {
+      document.getElementById('errorEmail').textContent = "Некорректный e‑mail";
+      document.getElementById('errorEmail').classList.add('show');
+      isValid = false;
+    }
+
+    if (!isValidPhone(phone.value.trim())) {
+      document.getElementById('errorPhone').textContent = "Некорректный телефон";
+      document.getElementById('errorPhone').classList.add('show');
+      isValid = false;
+    }
+
+    return isValid;
   }
 
   function gatherData() {
@@ -388,76 +409,59 @@
       firstName: firstName.value.trim(),
       lastName: lastName.value.trim(),
       email: email.value.trim(),
-      phone: phone.value.trim(),
-      telegramId: tg?.initDataUnsafe?.user?.id || null,
-      username: tg?.initDataUnsafe?.user?.username || null
+      phone: phone.value.trim()
     };
   }
 
-  // === АВТОЗАПОЛНЕНИЕ ИЗ TELEGRAM ===
-  function fillFromTelegram() {
-    if (!tg?.initDataUnsafe?.user) return;
-
-    const u = tg.initDataUnsafe.user;
-
-    if (u.first_name) firstName.value = u.first_name;
-    if (u.last_name) lastName.value = u.last_name;
-
-    // Телефон приходит только если пользователь поделился контактом через кнопку
-    if (u.phone_number) {
-      let p = u.phone_number;
-      if (p.startsWith('8') && p.length === 11) p = '+7' + p.substring(1);
-      if (!p.startsWith('+') && p.length === 10) p = '+7' + p;
-      if (!p.startsWith('+') && p.length === 11 && p.startsWith('7')) p = '+' + p;
-      phone.value = p;
-    }
-  }
-
-  // Открываем модалку
+  // Открыть модаль
   mainRegisterBtn.addEventListener('click', () => {
     mainPage.style.display = 'none';
     registrationModal.classList.add('show');
+    // Подставляем имя пользователя из Telegram (если доступно) и фокусируем поле
+    const nameFromTg = tg?.initDataUnsafe?.user?.first_name || '';
+    document.getElementById('firstName').value = nameFromTg;
+    firstName.focus();
 
-    fillFromTelegram();
-
-    // Фокус на первое пустое поле
-    if (firstName.value) {
-      if (lastName.value) email.focus();
-      else lastName.focus();
-    } else {
-      firstName.focus();
+    if (tg && tg.MainButton) {
+      tg.MainButton.hide();
     }
-
-    if (tg?.MainButton) tg.MainButton.hide();
   });
 
-  // Закрываем модалку
+  // Закрыть модаль
   closeModalBtn.addEventListener('click', () => {
     registrationModal.classList.remove('show');
     mainPage.style.display = 'flex';
     clearErrors();
-    if (tg?.MainButton) tg.MainButton.hide();
-  });
-
-  // Отправка
-  submitBtn.addEventListener('click', () => {
-    if (!validate()) return;
-
-    const data = gatherData();
+    firstName.value = '';
+    lastName.value = '';
+    email.value = '';
+    phone.value = '';
 
     if (tg) {
-      tg.sendData(JSON.stringify(data));
-      setTimeout(() => tg.close(), 300); // небольшая задержка, чтобы данные ушли
-    } else {
-      alert('Данные для отправки:\n' + JSON.stringify(data, null, 2));
+      tg.MainButton.hide();
     }
   });
 
-  // Инициализация WebApp
+  // Отправить
+  submitBtn.addEventListener('click', () => {
+    if (!validate()) return;
+
+    const payload = gatherData();
+
+    if (tg) {
+      tg.sendData(JSON.stringify(payload));
+      try { tg.close(); } catch(e) {}
+    } else {
+      alert("Данные:\n" + JSON.stringify(payload, null, 2));
+    }
+  });
+
+  // Инициализация Telegram
   if (tg) {
-    tg.ready();
-    tg.expand();
+    try { tg.expand(); } catch (e) {}
   }
+
+  firstName.focus();
 </script>
 </body>
 </html>
