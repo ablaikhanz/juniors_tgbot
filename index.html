@@ -357,6 +357,31 @@
   const email = document.getElementById('email');
   const phone = document.getElementById('phone');
 
+  // Получить данные пользователя из Telegram
+  function getTgUserData() {
+    if (!tg) return null;
+    
+    try {
+      // Способ 1: initDataUnsafe (новый API)
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        return tg.initDataUnsafe.user;
+      }
+      
+      // Способ 2: парсим initData (старый API)
+      if (tg.initData) {
+        const params = new URLSearchParams(tg.initData);
+        const userStr = params.get('user');
+        if (userStr) {
+          return JSON.parse(userStr);
+        }
+      }
+    } catch (e) {
+      console.error('Ошибка парсинга данных Telegram:', e);
+    }
+    
+    return null;
+  }
+
   // Валидация
   function isValidEmail(e) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
@@ -417,9 +442,22 @@
   mainRegisterBtn.addEventListener('click', () => {
     mainPage.style.display = 'none';
     registrationModal.classList.add('show');
-    // Подставляем имя пользователя из Telegram (если доступно) и фокусируем поле
-    const nameFromTg = tg?.initDataUnsafe?.user?.first_name || '';
-    document.getElementById('firstName').value = nameFromTg;
+    
+    // Получаем данные пользователя из Telegram
+    const userData = getTgUserData();
+    if (userData) {
+      if (userData.first_name) {
+        firstName.value = userData.first_name;
+      }
+      if (userData.last_name) {
+        lastName.value = userData.last_name;
+      }
+      if (userData.username) {
+        // Если нет email, можно использовать username как подсказку
+        console.log('Username:', userData.username);
+      }
+    }
+    
     firstName.focus();
 
     if (tg && tg.MainButton) {
@@ -459,6 +497,9 @@
   // Инициализация Telegram
   if (tg) {
     try { tg.expand(); } catch (e) {}
+    if (tg.ready) {
+      tg.ready();
+    }
   }
 
   firstName.focus();
